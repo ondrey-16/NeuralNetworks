@@ -1,16 +1,11 @@
 import numpy as np
-from layer import Layer
-from ..activations.relu import ReLU
+from layers.layer import Layer
+from activations.relu import ReLU
 
 class Hidden(Layer) :
-    def __init__(self, input_size=32, output_size=32, activation=ReLU()):
+    def __init__(self, input_size=32, output_size=32, activation=None):
         super().__init__(input_size, output_size)
-        self.activation = activation
-        self.biases = np.zeros((output_size,))
-        self.weights = np.empty((input_size, output_size))
-
-        self.in_cache = None
-        self.out_cache = None
+        self.activation = ReLU() if activation is None else activation 
 
     def forward(self, x, train=True):
         y = x @ self.weights + self.biases
@@ -19,3 +14,11 @@ class Hidden(Layer) :
             self.out_cache = y
 
         return self.activation.forward(y)
+
+    def backward(self, grad_out: np.ndarray) -> np.ndarray:
+        grad_h = self.activation.backward(self.out_cache, grad_out)
+
+        self.grad_weights = self.in_cache.T @ grad_h
+        self.grad_biases = np.sum(grad_h, axis=0)
+
+        return grad_h @ self.weights.T

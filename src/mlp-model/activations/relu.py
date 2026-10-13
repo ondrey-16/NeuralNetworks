@@ -1,4 +1,4 @@
-from activation import Activation
+from activations.activation import Activation
 import numpy as np
 
 class ReLU(Activation):
@@ -7,3 +7,6 @@ class ReLU(Activation):
 
     def forward(self, x):
         return np.maximum(0, x)
+
+    def backward(self, x: np.ndarray, grad_out: np.ndarray) -> np.ndarray:
+        return grad_out * (x > 0)
