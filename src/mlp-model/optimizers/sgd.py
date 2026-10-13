@@ -1,0 +1,14 @@
+import numpy as np
+
+from optimizers.optimizer import Optimizer
+from mlp import MLP
+
+class SGDOptimizer(Optimizer):
+    def __init__(self, model: MLP, lr=0.01):
+        super().__init__(model)
+        self.lr = lr
+
+    def step(self):
+        for layer in self.model.layers:
+            layer.weights -= (self.lr * layer.grad_weights)
+            layer.biases -= (self.lr * layer.grad_biases)
