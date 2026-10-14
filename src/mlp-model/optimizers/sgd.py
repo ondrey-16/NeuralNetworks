@@ -1,5 +1,3 @@
-import numpy as np
-
 from optimizers.optimizer import Optimizer
 from mlp import MLP
 
