@@ -44,3 +44,5 @@ class AdamOptimizer(Optimizer):
 
             i += 1
 
+    def clone(self, model: MLP) -> Optimizer:
+        return AdamOptimizer(model, self.lr, self.beta1, self.beta2, self.eps)

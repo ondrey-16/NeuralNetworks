@@ -1,4 +1,6 @@
 import numpy as np
+import copy
+
 from layers.layer import Layer
 from initialize_weights.weights_initializer import WeightsInitializer
 
@@ -9,14 +11,16 @@ class MLP:
                 raise ValueError("Błąd architektury. Niespójność warstw!")
         
         self.layers = layers
+        self.initializer = None
 
     def initialize_weights(self, initializer: WeightsInitializer):
+        self.initializer = copy.deepcopy(initializer)
         for layer in self.layers:
             layer.initialize_weights(initializer)
 
-    def forward(self, x: np.ndarray) -> np.ndarray:
+    def forward(self, x: np.ndarray, train=False) -> np.ndarray:
         for layer in self.layers:
-            x = layer.forward(x)
+            x = layer.forward(x, train)
 
         return x
 
@@ -25,3 +29,15 @@ class MLP:
             grad = layer.backward(grad_out=grad)
 
         return grad
+
+    def clone(self) -> MLP:
+        cloned_mlp = copy.deepcopy(self)
+        cloned_mlp.initialize_weights(cloned_mlp.initializer)
+
+        for layer in cloned_mlp.layers:
+            layer.grad_weights.fill(0)
+            layer.grad_biases.fill(0)
+            layer.in_cache = None
+            layer.out_cache = None
+
+        return cloned_mlp

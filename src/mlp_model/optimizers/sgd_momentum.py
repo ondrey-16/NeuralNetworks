@@ -21,3 +21,6 @@ class SGDMomentumOptimizer(Optimizer):
             layer.biases -= (self.lr * self.m_biases[i])
 
             i += 1
+
+    def clone(self, model: MLP) -> Optimizer:
+        return SGDMomentumOptimizer(model, self.lr, self.momentum)

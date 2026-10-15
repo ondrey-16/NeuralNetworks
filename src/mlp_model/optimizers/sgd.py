@@ -10,3 +10,6 @@ class SGDOptimizer(Optimizer):
         for layer in self.model.layers:
             layer.weights -= (self.lr * layer.grad_weights)
             layer.biases -= (self.lr * layer.grad_biases)
+
+    def clone(self, model: MLP) -> Optimizer:
+        return SGDOptimizer(model, self.lr)
