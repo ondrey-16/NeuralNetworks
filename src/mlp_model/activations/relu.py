@@ -1,5 +1,6 @@
-from activations.activation import Activation
 import numpy as np
+from activations.activation import Activation
+
 
 class ReLU(Activation):
     def __init__(self):

@@ -1,6 +1,8 @@
-import numpy as np
 from abc import ABC, abstractmethod
+
+import numpy as np
 from initialize_weights.weights_initializer import WeightsInitializer
+
 
 class Layer(ABC) :
     def __init__(self, input_size=32, output_size=32):

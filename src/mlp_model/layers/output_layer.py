@@ -1,6 +1,7 @@
 import numpy as np
 from layers.layer import Layer
 
+
 class OutputLayer(Layer) :
     def __init__(self, input_size=32, output_size=32):
         super().__init__(input_size, output_size)

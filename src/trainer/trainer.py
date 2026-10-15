@@ -1,10 +1,12 @@
 import copy
+
 import numpy as np
 from sklearn.model_selection import KFold
 
+from mlp_model.losses.loss import Loss
 from mlp_model.mlp import MLP
 from mlp_model.optimizers.optimizer import Optimizer
-from mlp_model.losses.loss import Loss
+
 
 class MLPTrainer:
     def __init__(self, model: MLP, optimizer: Optimizer, loss: Loss, epochs=100,
@@ -31,7 +33,7 @@ class MLPTrainer:
 
         return float(self.loss.forward(preds, y))
 
-    def fit(self, X_train: np.ndarray, y_train: np.ndarray, 
+    def fit(self, X_train: np.ndarray, y_train: np.ndarray,
             X_val: np.ndarray, y_val: np.ndarray) -> dict:
         X_train = np.asarray(X_train)
         y_train = np.asarray(y_train)
@@ -94,7 +96,7 @@ class MLPTrainer:
             fold_trainer = MLPTrainer(model, optimizer, copy.deepcopy(self.loss), self.epochs,
                                    self.batch_size, self.shuffle, self.random_state)
 
-            history = fold_trainer.fit(X[train_idx], y[train_idx], 
+            history = fold_trainer.fit(X[train_idx], y[train_idx],
                                        X[val_idx], y[val_idx])
 
             score = history["val_loss"][-1]
@@ -103,7 +105,7 @@ class MLPTrainer:
                 "val_loss": score,
                 "history": history
             })
-            
+
             print(f"Fold {fold}: loss = {score:.6f}")
             fold += 1
 

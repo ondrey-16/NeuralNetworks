@@ -1,6 +1,7 @@
 import numpy as np
 from initialize_weights.weights_initializer import WeightsInitializer
 
+
 class XavierInitializer(WeightsInitializer):
     def __init__(self):
         super().__init__()

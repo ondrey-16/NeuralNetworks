@@ -1,5 +1,6 @@
-from optimizers.optimizer import Optimizer
 from mlp import MLP
+from optimizers.optimizer import Optimizer
+
 
 class SGDOptimizer(Optimizer):
     def __init__(self, model: MLP, lr=0.01):

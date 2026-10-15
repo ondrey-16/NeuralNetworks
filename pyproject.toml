@@ -9,4 +9,13 @@ dependencies = [
     "scikit-learn>=1.9.1",
     "seaborn>=0.13.2",
     "tqdm>=4.70.1",
+    "ruff>=0.4.0",
 ]
+
+[tool.ruff]
+line-length = 120
+target-version = "py314"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "PTH", "SIM", "C4", "W"]
+ignore = []

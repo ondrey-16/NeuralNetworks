@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 
 from mlp import MLP
 
+
 class Optimizer(ABC):
     def __init__(self, model: MLP):
         super().__init__()

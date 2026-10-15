@@ -1,5 +1,6 @@
-from losses.loss import Loss
 import numpy as np
+from losses.loss import Loss
+
 
 class MSELoss(Loss):
     def __init__(self):

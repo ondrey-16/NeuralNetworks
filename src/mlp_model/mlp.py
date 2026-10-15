@@ -1,15 +1,16 @@
-import numpy as np
 import copy
 
-from layers.layer import Layer
+import numpy as np
 from initialize_weights.weights_initializer import WeightsInitializer
+from layers.layer import Layer
+
 
 class MLP:
     def __init__(self, layers: list[Layer]):
         for i in range(len(layers) - 1):
             if (layers[i].output_size != layers[i + 1].input_size):
                 raise ValueError("Błąd architektury. Niespójność warstw!")
-        
+
         self.layers = layers
         self.initializer = None
 

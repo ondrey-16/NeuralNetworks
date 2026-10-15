@@ -1,11 +1,12 @@
 import numpy as np
-from layers.layer import Layer
 from activations.relu import ReLU
+from layers.layer import Layer
+
 
 class Hidden(Layer) :
     def __init__(self, input_size=32, output_size=32, activation=None):
         super().__init__(input_size, output_size)
-        self.activation = ReLU() if activation is None else activation 
+        self.activation = ReLU() if activation is None else activation
 
     def forward(self, x, train=True):
         y = x @ self.weights + self.biases

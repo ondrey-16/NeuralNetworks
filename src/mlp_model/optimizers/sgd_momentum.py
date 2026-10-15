@@ -1,7 +1,7 @@
 import numpy as np
-
-from optimizers.optimizer import Optimizer
 from mlp import MLP
+from optimizers.optimizer import Optimizer
+
 
 class SGDMomentumOptimizer(Optimizer):
     def __init__(self, model: MLP, lr=0.01, momentum=0.9):
