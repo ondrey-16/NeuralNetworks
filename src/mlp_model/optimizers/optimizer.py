@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from mlp import MLP
+from ..mlp import MLP
 
 
 class Optimizer(ABC):

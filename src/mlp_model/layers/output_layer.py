@@ -1,5 +1,5 @@
 import numpy as np
-from layers.layer import Layer
+from ..layers.layer import Layer
 
 
 class OutputLayer(Layer) :

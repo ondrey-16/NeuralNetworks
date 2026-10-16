@@ -1,8 +1,8 @@
 import copy
 
 import numpy as np
-from initialize_weights.weights_initializer import WeightsInitializer
-from layers.layer import Layer
+from .initialize_weights.weights_initializer import WeightsInitializer
+from .layers.layer import Layer
 
 
 class MLP:
