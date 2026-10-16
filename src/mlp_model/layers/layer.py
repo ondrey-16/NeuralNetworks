@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 
 import numpy as np
-from initialize_weights.weights_initializer import WeightsInitializer
+from ..initialize_weights.weights_initializer import WeightsInitializer
 
 
 class Layer(ABC) :

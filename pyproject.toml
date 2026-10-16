@@ -10,6 +10,9 @@ dependencies = [
     "seaborn>=0.13.2",
     "tqdm>=4.70.1",
     "ruff>=0.4.0",
+    "ipynb>=0.5.1",
+    "pip>=26.2.1",
+    "ipykernel>=7.4.0",
 ]
 
 [tool.ruff]

@@ -1,7 +1,7 @@
 import copy
 
 import numpy as np
-from sklearn.model_selection import KFold
+from sklearn.model_selection import StratifiedKFold
 
 from mlp_model.losses.loss import Loss
 from mlp_model.mlp import MLP
@@ -21,7 +21,10 @@ class MLPTrainer:
 
         self.history = {
             "train_loss": [],
-            "val_loss": []
+            "val_loss": [],
+            "batch_loss": [],
+            "weights": [],
+            "grad_norms": []
         }
 
     def predict(self, X: np.ndarray) -> np.ndarray:
@@ -44,8 +47,13 @@ class MLPTrainer:
 
         self.history = {
             "train_loss": [],
-            "val_loss": []
+            "val_loss": [],
+            "batch_loss": [],
+            "weights": [],
+            "grad_norms": []
         }
+
+        self.history["weights"].append(self._get_weights())
 
         rng = np.random.default_rng(self.random_state)
         n_samples = len(X_train)
@@ -55,6 +63,8 @@ class MLPTrainer:
 
             if self.shuffle:
                 rng.shuffle(indices)
+
+            epoch_grad_norms = []
 
             for start in range(0, n_samples, self.batch_size):
                 batch_idx = indices[start:start + self.batch_size]
@@ -66,9 +76,14 @@ class MLPTrainer:
 
                 preds = self.model.forward(X_batch, train=True)
 
-                grad = self.loss.backward(preds, y_batch)
+                batch_loss = self.loss.forward(preds, y_batch)
+                self.history["batch_loss"].append(float(batch_loss))
 
+                grad = self.loss.backward(preds, y_batch)
                 self.model.backward(grad=grad)
+
+                epoch_grad_norms.append(self._get_gradient_norms())
+
                 self.optimizer.step()
 
             train_loss = self.evaluate(X_train, y_train)
@@ -78,13 +93,16 @@ class MLPTrainer:
                 val_loss = self.evaluate(X_val, y_val)
                 self.history["val_loss"].append(val_loss)
 
+            self.history["grad_norms"].append(np.mean(epoch_grad_norms, axis=0).tolist())
+            self.history["weights"].append(self._get_weights())
+
         return self.history
 
     def cross_validate(self, X: np.ndarray, y: np.ndarray, cv=5) -> dict:
         X = np.asarray(X)
         y = np.asarray(y)
 
-        kfold = KFold(n_splits=cv, shuffle=True, random_state=self.random_state)
+        kfold = StratifiedKFold(n_splits=cv, shuffle=True, random_state=self.random_state)
 
         fold_results = []
 
@@ -121,3 +139,13 @@ class MLPTrainer:
             "mean_loss": float(np.mean(scores)),
             "std_loss": float(np.std(scores))
         }
+
+    def _get_weights(self):
+        return [
+            layer.weights.copy() for layer in self.model.layers
+        ]
+
+    def _get_gradient_norms(self):
+        return [
+            float(np.linalg.norm(layer.grad_weights)) for layer in self.model.layers
+        ]

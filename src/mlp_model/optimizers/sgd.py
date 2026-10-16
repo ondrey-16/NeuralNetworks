@@ -1,5 +1,5 @@
-from mlp import MLP
-from optimizers.optimizer import Optimizer
+from ..mlp import MLP
+from ..optimizers.optimizer import Optimizer
 
 
 class SGDOptimizer(Optimizer):

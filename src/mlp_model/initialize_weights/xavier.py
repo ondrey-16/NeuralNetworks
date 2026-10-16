@@ -1,5 +1,5 @@
 import numpy as np
-from initialize_weights.weights_initializer import WeightsInitializer
+from ..initialize_weights.weights_initializer import WeightsInitializer
 
 
 class XavierInitializer(WeightsInitializer):

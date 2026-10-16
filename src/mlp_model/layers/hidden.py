@@ -1,6 +1,6 @@
 import numpy as np
-from activations.relu import ReLU
-from layers.layer import Layer
+from ..activations.relu import ReLU
+from ..layers.layer import Layer
 
 
 class Hidden(Layer) :
