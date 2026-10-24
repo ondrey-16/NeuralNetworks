@@ -1,4 +1,6 @@
 import copy
+import pathlib
+import pickle
 
 import numpy as np
 from sklearn.metrics import accuracy_score, f1_score, mean_absolute_error, mean_squared_error, precision_score, r2_score
@@ -36,7 +38,7 @@ class MLPTrainer:
         return loss, metrics
 
     def fit(self, X_train: np.ndarray, y_train: np.ndarray,
-            X_val: np.ndarray, y_val: np.ndarray) -> dict:
+            X_val: np.ndarray, y_val: np.ndarray, file_name:str="") -> dict:
         X_train = np.asarray(X_train)
         y_train = np.asarray(y_train)
 
@@ -91,6 +93,13 @@ class MLPTrainer:
 
             self.history["grad_norms"].append(np.mean(epoch_grad_norms, axis=0).tolist())
             self.history["weights"].append(self._get_weights())
+        if file_name != "":
+            file_path = pathlib.Path(__file__).parent.parent.parent.resolve()
+            file_path = file_path.joinpath("history_data", file_name).with_suffix(
+                ".pkl")
+            file_path.parent.mkdir(parents=True, exist_ok=True)
+            with open(file_path, "wb") as f:
+                pickle.dump(self.history, f)
 
         return self.history
 
