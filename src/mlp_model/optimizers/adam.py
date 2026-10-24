@@ -1,4 +1,5 @@
 import numpy as np
+
 from ..mlp import MLP
 from ..optimizers.optimizer import Optimizer
 

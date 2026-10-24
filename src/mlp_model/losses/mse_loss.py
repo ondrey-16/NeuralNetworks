@@ -1,4 +1,5 @@
 import numpy as np
+
 from ..losses.loss import Loss
 
 
