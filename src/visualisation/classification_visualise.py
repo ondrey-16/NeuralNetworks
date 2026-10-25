@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-from ..trainer import MLPTrainer
+from trainer.trainer import MLPTrainer
 
 def plot_decision_boundary(trainer: MLPTrainer, X: np.ndarray, y: np.ndarray):
     y = y.reshape(-1)
@@ -41,5 +41,49 @@ def plot_decision_boundary(trainer: MLPTrainer, X: np.ndarray, y: np.ndarray):
     plt.ylabel("X2")
     plt.title("Decision boundary")
     plt.legend()
+    plt.tight_layout()
+    plt.show()
+
+
+def plot_loss(trainings, metric):
+    plt.figure(figsize=(9, 5))
+
+    for name, runs in trainings.items():
+        losses = np.array([run["history"][metric] for run in runs])
+
+        mean = np.mean(losses, axis=0)
+        std = np.std(losses, axis=0)
+
+        epochs = np.arange(1, len(mean) + 1)
+
+        line, = plt.plot(epochs, mean, label=name, linewidth=2)
+
+        plt.fill_between(epochs, mean-std, mean + std, 
+                         color=line.get_color(), alpha=0.2)
+
+    plt.xlabel("Epochs")
+    plt.ylabel("Loss function value")
+    plt.title(f"Plot of {metric} function")
+    plt.legend()
+    plt.grid(alpha=0.3)
+    plt.tight_layout()
+    plt.show()
+
+def plot_weights(history, layer_idx=0, n_weights=16):
+    weights = np.array([epoch_weights[layer_idx].flatten() \
+                          for epoch_weights in history["weights"]])
+
+    epochs = np.arange(weights.shape[0])
+
+    plt.figure(figsize=(10, 6))
+
+    for i in range(n_weights):
+        plt.plot(epochs, weights[:, i], label=f"Weight {i + 1}")
+
+    plt.xlabel("Epoch")
+    plt.ylabel("Weight value")
+    plt.title("Weights evolution")
+    plt.legend()
+    plt.grid(alpha=0.3)
     plt.tight_layout()
     plt.show()
