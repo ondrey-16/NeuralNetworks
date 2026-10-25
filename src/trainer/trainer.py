@@ -1,8 +1,11 @@
 import copy
+import pathlib
+import pickle
 
 import numpy as np
-from sklearn.model_selection import StratifiedKFold
-from sklearn.metrics import accuracy_score, precision_score, f1_score
+from sklearn.metrics import accuracy_score, f1_score, mean_absolute_error, mean_squared_error, precision_score, r2_score
+from sklearn.model_selection import KFold, StratifiedKFold
+from sklearn.utils.multiclass import type_of_target
 
 from mlp_model.losses.loss import Loss
 from mlp_model.mlp import MLP
@@ -35,7 +38,7 @@ class MLPTrainer:
         return loss, metrics
 
     def fit(self, X_train: np.ndarray, y_train: np.ndarray,
-            X_val: np.ndarray, y_val: np.ndarray) -> dict:
+            X_val: np.ndarray, y_val: np.ndarray, file_name:str="") -> dict:
         X_train = np.asarray(X_train)
         y_train = np.asarray(y_train)
 
@@ -78,24 +81,25 @@ class MLPTrainer:
 
                 self.optimizer.step()
 
-            train_loss, metrics = self.evaluate(X_train, y_train)
+            train_loss, train_metrics = self.evaluate(X_train, y_train)
             self.history["train_loss"].append(train_loss)
 
-            self.history["train_accuracy"].append(metrics["accuracy"])
-            self.history["train_precision"].append(metrics["precision"])
-            self.history["train_f1_score"].append(metrics["f1_score"])
+            self.history["train_metrics"].append(train_metrics)
 
             if X_val is not None:
-
-                val_loss, metrics = self.evaluate(X_val, y_val)
+                val_loss, val_metrics = self.evaluate(X_val, y_val)
                 self.history["val_loss"].append(val_loss)
-
-                self.history["val_accuracy"].append(metrics["accuracy"])
-                self.history["val_precision"].append(metrics["precision"])
-                self.history["val_f1_score"].append(metrics["f1_score"])
+                self.history["val_metrics"].append(val_metrics)
 
             self.history["grad_norms"].append(np.mean(epoch_grad_norms, axis=0).tolist())
             self.history["weights"].append(self._get_weights())
+        if file_name != "":
+            file_path = pathlib.Path(__file__).parent.parent.parent.resolve()
+            file_path = file_path.joinpath("history_data", file_name).with_suffix(
+                ".pkl")
+            file_path.parent.mkdir(parents=True, exist_ok=True)
+            with open(file_path, "wb") as f:
+                pickle.dump(self.history, f)
 
         return self.history
 
@@ -103,75 +107,60 @@ class MLPTrainer:
         X = np.asarray(X)
         y = np.asarray(y)
 
-        kfold = StratifiedKFold(n_splits=cv, shuffle=True, random_state=self.random_state)
+        target_type = type_of_target(y)
+        if target_type in ("binary", "multiclass"):
+            kfold = StratifiedKFold(n_splits=cv, shuffle=True, random_state=self.random_state)
+        else:
+            kfold = KFold(n_splits=cv, shuffle=True, random_state=self.random_state)
 
         fold_results = []
-
         fold = 1
-        for (train_idx, val_idx) in kfold.split(X, y):
+
+        for train_idx, val_idx in kfold.split(X, y):
             model = self.model.clone()
             optimizer = self.optimizer.clone(model)
 
-            fold_trainer = MLPTrainer(model, optimizer, copy.deepcopy(self.loss), self.epochs,
-                                   self.batch_size, self.shuffle, self.random_state)
+            fold_trainer = MLPTrainer(
+                model, optimizer, copy.deepcopy(self.loss), self.epochs,
+                self.batch_size, self.shuffle, self.random_state
+            )
 
-            history = fold_trainer.fit(X[train_idx], y[train_idx],
-                                       X[val_idx], y[val_idx])
+            history = fold_trainer.fit(
+                X[train_idx], y[train_idx],
+                X[val_idx], y[val_idx]
+            )
 
-            score = history["val_loss"][-1]
+            val_loss = history["val_loss"][-1]
+            last_metrics = history["val_metrics"][-1]
+
             fold_results.append({
                 "fold": fold,
-                "val_loss": score,
-                "val_accuracy": history["val_accuracy"][-1],
-                "val_precision": history["val_precision"][-1],
-                "val_f1_score": history["val_f1_score"][-1],
+                "val_loss": val_loss,
+                "val_metrics": last_metrics,
                 "history": history
             })
 
-            print(f"Fold {fold}: loss = {score:.6f}")
+            print(f"Fold {fold}: loss = {val_loss:.6f} | metrics {last_metrics}")
             fold += 1
 
-        scores = np.array([result["val_loss"] for result in fold_results])
-        accuracies = np.array([result["val_accuracy"] for result in fold_results])
-        precisions = np.array([result["val_precision"] for result in fold_results])
-        f1_scores = np.array([result["val_f1_score"] for result in fold_results])
-
-        print("---------------------------------------------------------------\n")
-        print(f"Cross validation with {cv} folds results:")
-        print(f"Mean loss: {float(np.mean(scores)):.6f}")
-        print(f"Std loss: {float(np.std(scores)):.6f}")
+        scores = [res["val_loss"] for res in fold_results]
         print("---------------------------------------------------------------")
-        print(f"Mean accuracy: {float(np.mean(accuracies)):.6f}")
-        print(f"Std accuracy: {float(np.std(accuracies)):.6f}")
+        print(f"Cross validation with {cv} folds:")
+        print(f"Mean loss: {float(np.mean(scores)):.6f} (std: {float(np.std(scores)):.6f})")
         print("---------------------------------------------------------------")
-        print(f"Mean precision: {float(np.mean(precisions)):.6f}")
-        print(f"Std precision: {float(np.std(precisions)):.6f}")
-        print("---------------------------------------------------------------")
-        print(f"Mean f1_score: {float(np.mean(f1_scores)):.6f}")
-        print(f"Std f1_score: {float(np.std(f1_scores)):.6f}")
 
         return {
             "folds": fold_results,
             "mean_loss": float(np.mean(scores)),
-            "std_loss": float(np.std(scores)),
-            "mean_accuracy": float(np.mean(accuracies)),
-            "std_accuracy": float(np.std(accuracies)),
-            "mean_precision": float(np.mean(precisions)),
-            "std_precision": float(np.std(precisions)),
-            "mean_f1_score": float(np.mean(f1_scores)),
-            "std_f1_score": float(np.std(f1_scores)),
+            "std_loss": float(np.std(scores))
         }
 
     def _init_history(self):
         return {
             "train_loss": [],
             "val_loss": [],
-            "train_accuracy": [],
-            "val_accuracy": [],
-            "train_precision": [],
-            "val_precision": [],
-            "train_f1_score": [],
-            "val_f1_score": [],
+            "train_metrics": [],
+            "val_metrics": [],
             "batch_loss": [],
             "weights": [],
             "grad_norms": []
@@ -188,19 +177,27 @@ class MLPTrainer:
         ]
 
     def _get_metrics(self, preds: np.ndarray, y: np.ndarray):
+        y_true = np.asarray(y)
+        target_type = type_of_target(y_true)
+
+        if target_type in ("continuous", "continuous-multioutput"):
+            y_pred = preds.reshape(y_true.shape)
+            return {
+                "r2": float(r2_score(y_true, y_pred)),
+                "mae": float(mean_absolute_error(y_true, y_pred)),
+                "mse": float(mean_squared_error(y_true, y_pred))
+            }
+
         if preds.ndim == 2 and preds.shape[1] > 1:
             y_pred = np.argmax(preds, axis=1)
         else:
             y_pred = (preds.reshape(-1) >= 0.5).astype(int)
 
-        y_true = np.asarray(y).reshape(-1)
-
+        y_flat = y_true.reshape(-1)
         return {
-            "accuracy": accuracy_score(y_true, y_pred),
-            "precision": precision_score(
-                y_true, y_pred, average="macro", zero_division=0
-            ),
-            "f1_score": f1_score(
-                y_true, y_pred, average="macro", zero_division=0
-            ),
+            "accuracy": float(accuracy_score(y_flat, y_pred)),
+            "precision": float(
+                precision_score(y_flat, y_pred, average="macro", zero_division=0)),
+            "f1_score": float(
+                f1_score(y_flat, y_pred, average="macro", zero_division=0))
         }
