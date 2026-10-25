@@ -22,7 +22,6 @@ class MLPTrainer:
         self.batch_size = batch_size
         self.shuffle = shuffle
         self.random_state = random_state
-
         self.history = self._init_history()
 
     def predict(self, X: np.ndarray) -> np.ndarray:
@@ -38,7 +37,7 @@ class MLPTrainer:
         return loss, metrics
 
     def fit(self, X_train: np.ndarray, y_train: np.ndarray,
-            X_val: np.ndarray, y_val: np.ndarray, file_name:str="") -> dict:
+            X_val: np.ndarray = None, y_val: np.ndarray = None, file_name:str="") -> dict:
         X_train = np.asarray(X_train)
         y_train = np.asarray(y_train)
 
@@ -108,10 +107,13 @@ class MLPTrainer:
         y = np.asarray(y)
 
         target_type = type_of_target(y)
+
         if target_type in ("binary", "multiclass"):
             kfold = StratifiedKFold(n_splits=cv, shuffle=True, random_state=self.random_state)
+            splits = kfold.split(X, y.reshape(-1))
         else:
             kfold = KFold(n_splits=cv, shuffle=True, random_state=self.random_state)
+            splits = kfold.split(X)
 
         fold_results = []
         fold = 1
@@ -130,29 +132,34 @@ class MLPTrainer:
                 X[val_idx], y[val_idx]
             )
 
-            val_loss = history["val_loss"][-1]
-            last_metrics = history["val_metrics"][-1]
-
             fold_results.append({
                 "fold": fold,
-                "val_loss": val_loss,
-                "val_metrics": last_metrics,
+                "val_loss": history["val_loss"][-1],
+                "val_metrics": history["val_metrics"][-1],
                 "history": history
             })
 
-            print(f"Fold {fold}: loss = {val_loss:.6f} | metrics {last_metrics}")
-            fold += 1
+        losses = np.array([
+            result["val_loss"] for result in fold_results
+        ])
 
-        scores = [res["val_loss"] for res in fold_results]
-        print("---------------------------------------------------------------")
-        print(f"Cross validation with {cv} folds:")
-        print(f"Mean loss: {float(np.mean(scores)):.6f} (std: {float(np.std(scores)):.6f})")
-        print("---------------------------------------------------------------")
+        metrics_names = fold_results[0]["val_metrics"].keys()
+
+        mean_metrics = {}
+        std_metrics = {}
+
+        for metric in metrics_names:
+            values = np.array([result["val_metrics"][metric] for result in fold_results])
+
+            mean_metrics[metric] = float(np.mean(values))
+            std_metrics[metric] = float(np.std(values))
 
         return {
             "folds": fold_results,
-            "mean_loss": float(np.mean(scores)),
-            "std_loss": float(np.std(scores))
+            "mean_loss": float(np.mean(losses)),
+            "std_loss": float(np.std(losses)),
+            "mean_metrics": mean_metrics,
+            "std_metrics": std_metrics
         }
 
     def _init_history(self):
