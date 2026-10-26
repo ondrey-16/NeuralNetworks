@@ -6,7 +6,7 @@ from ..initialize_weights.weights_initializer import WeightsInitializer
 
 
 class Layer(ABC) :
-    def __init__(self, input_size=32, output_size=32):
+    def __init__(self, input_size=32, output_size=32, if_bias=True):
         super().__init__()
         self.input_size = input_size
         self.output_size = output_size
@@ -19,6 +19,8 @@ class Layer(ABC) :
         self.in_cache = None
         self.out_cache = None
 
+        self.if_bias = if_bias
+
     @abstractmethod
     def forward(self, x: np.ndarray, train=True) -> np.ndarray:
         pass
@@ -29,3 +31,6 @@ class Layer(ABC) :
 
     def initialize_weights(self, initializer: WeightsInitializer):
         initializer.initialize_weights(self.weights, self.biases)
+
+        if not self.if_bias:
+            self.biases.fill(0)
