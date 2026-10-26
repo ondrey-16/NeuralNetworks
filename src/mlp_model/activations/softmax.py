@@ -7,9 +7,13 @@ class Softmax(Activation):
         super().__init__()
 
     def forward(self, x):
-        exp_x = np.exp(x)
-        return exp_x / np.sum(exp_x)
+        shifted = x - np.max(x, axis=1, keepdims=True)
+        exp_x = np.exp(shifted)
+
+        return exp_x / np.sum(exp_x, axis=1, keepdims=True)
 
     def backward(self, x: np.ndarray, grad_out: np.ndarray) -> np.ndarray:
         sm = self.forward(x)
-        return sm * (grad_out - np.sum(grad_out * sm))
+        dot = np.sum(grad_out * sm, axis=1, keepdims=True)
+        
+        return sm * (grad_out - dot)
