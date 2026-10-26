@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 
 from trainer.trainer import MLPTrainer
 
-def plot_decision_boundary(trainer: MLPTrainer, X: np.ndarray, y: np.ndarray):
+def plot_decision_boundary(trainer: MLPTrainer, X: np.ndarray, y: np.ndarray, type=""):
     y = y.reshape(-1)
     
     x_min = X[:, 0].min() - 0.2
@@ -39,7 +39,7 @@ def plot_decision_boundary(trainer: MLPTrainer, X: np.ndarray, y: np.ndarray):
 
     plt.xlabel("X1")
     plt.ylabel("X2")
-    plt.title("Decision boundary")
+    plt.title(f"{type} - Decision boundary")
     plt.legend()
     plt.tight_layout()
     plt.show()
@@ -69,21 +69,25 @@ def plot_loss(trainings, metric):
     plt.tight_layout()
     plt.show()
 
-def plot_weights(history, layer_idx=0, n_weights=16):
+def plot_weights(history, layer_idx=0, n_weights=16, type=""):
     weights = np.array([epoch_weights[layer_idx].flatten() \
                           for epoch_weights in history["weights"]])
 
     epochs = np.arange(weights.shape[0])
 
-    plt.figure(figsize=(10, 6))
+    plt.figure(figsize=(10, 8))
 
     for i in range(n_weights):
         plt.plot(epochs, weights[:, i], label=f"Weight {i + 1}")
 
     plt.xlabel("Epoch")
     plt.ylabel("Weight value")
-    plt.title("Weights evolution")
-    plt.legend()
-    plt.grid(alpha=0.3)
+    plt.title(f"{type} - Weights evolution")
+    plt.legend(
+        loc="upper center",
+        bbox_to_anchor=(0.5, -0.12),
+        ncol=4
+    )
     plt.tight_layout()
+    plt.grid(alpha=0.3)
     plt.show()
