@@ -138,6 +138,7 @@ class MLPTrainer:
                 "val_metrics": history["val_metrics"][-1],
                 "history": history
             })
+            fold += 1
 
         losses = np.array([
             result["val_loss"] for result in fold_results
