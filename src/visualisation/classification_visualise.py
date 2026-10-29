@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from sklearn.metrics import ConfusionMatrixDisplay
 
 from trainer.trainer import MLPTrainer
 
@@ -90,4 +91,12 @@ def plot_weights(history, layer_idx=0, n_weights=16, type=""):
     )
     plt.tight_layout()
     plt.grid(alpha=0.3)
+    plt.show()
+
+def plot_confussion_matrix(y_val, y_pred):
+    ConfusionMatrixDisplay.from_predictions(
+        y_val, y_pred,
+        cmap="Blues"
+    )
+
     plt.show()
