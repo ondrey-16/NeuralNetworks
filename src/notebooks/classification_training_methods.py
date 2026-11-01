@@ -12,18 +12,18 @@ from mlp_model.optimizers.sgd import SGDOptimizer
 from trainer.trainer import MLPTrainer
 
 def create_mlp_model(input_size, classes_count, 
-                     hidden_sizes=(16,), activation_hidden=Sigmoid(), random_state=42):
+                     hidden_sizes=(16,), activation_hidden=Sigmoid(), random_state=42, if_bias: bool = True):
     layers = []
     curr_size = input_size
 
     for size in hidden_sizes:
-        layers.append(Hidden(curr_size, size, activation_hidden))
+        layers.append(Hidden(curr_size, size, activation_hidden, if_bias=if_bias))
         curr_size = size
 
     if classes_count == 2:
-        layers.append(OutputLayer(curr_size, 1, Sigmoid()))
+        layers.append(OutputLayer(curr_size, 1, Sigmoid(), if_bias=if_bias))
     else:
-        layers.append(OutputLayer(curr_size, classes_count, Softmax()))
+        layers.append(OutputLayer(curr_size, classes_count, Softmax(), if_bias=if_bias))
 
     model = MLP(layers)
     model.initialize_weights(XavierInitializer(random_state))
@@ -32,13 +32,13 @@ def create_mlp_model(input_size, classes_count,
 
 
 def run_training(activation_hidden, loss_cls, X_train, y_train, X_val, y_val, hidden_sizes=(16,), classes_count=2, 
-                 seeds=(42, 43, 44, 45, 46), epochs=100, batch_size=32, learning_rate=0.01,):
+                 seeds=(42, 43, 44, 45, 46), epochs=100, batch_size=32, learning_rate=0.01, if_bias: bool = True):
     runs = []
 
     for seed in seeds:
         np.random.seed(seed)
 
-        model = create_mlp_model(X_train.shape[1], classes_count, hidden_sizes, activation_hidden, random_state=seed)
+        model = create_mlp_model(X_train.shape[1], classes_count, hidden_sizes, activation_hidden, random_state=seed, if_bias=if_bias)
         optimizer = SGDOptimizer(model, learning_rate)
 
         trainer = MLPTrainer(model, optimizer, loss_cls, epochs, batch_size, 42)
@@ -54,6 +54,11 @@ def run_training(activation_hidden, loss_cls, X_train, y_train, X_val, y_val, hi
         }
 
         runs.append(result)
+    # i = 0
+    # for layer in model.layers:
+    #     print(f"warstwa: {i}")
+    #     i += 1
+    #     print(layer.biases)
 
     return runs
 
