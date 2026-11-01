@@ -1,0 +1,2 @@
+config,loss,accuracy,precision,f1_score
+512-512-256-128,0.093801,0.979167,0.978976,0.978972
