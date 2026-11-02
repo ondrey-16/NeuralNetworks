@@ -1,0 +1,2 @@
+seed,test_loss,accuracy,precision,f1_score
+42,0.078095,0.9804,0.980412,0.980329
